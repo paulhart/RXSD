@@ -31,7 +31,7 @@ class Restriction
 
   # return xsd node info
   def info
-    "extension id: #{@id} base: #{@base.nil? ? "" : (@base.class == String || Parser.is_builtin?(@base)) ? @base : @base.name }"
+    "restriction id: #{@id} base: #{@base.nil? ? "" : (@base.class == String || Parser.is_builtin?(@base)) ? @base : @base.name }"
   end
 
   # returns array of all children
@@ -143,6 +143,53 @@ class Restriction
        end
 
        # FIXME add facets
+       unless @min_exclusive.nil?
+         @class_builder.validations.push ['min_exclusive', @min_exclusive]
+       end
+       
+       unless @min_inclusive.nil?
+         @class_builder.validations.push ['min_inclusive', @min_inclusive]
+       end
+       
+       unless @max_exclusive.nil?
+         @class_builder.validations.push ['max_exclusive', @max_exclusive]
+       end
+       
+       unless @max_inclusive.nil?
+         @class_builder.validations.push ['max_inclusive', @max_inclusive]
+       end
+       
+       unless @total_digits.nil?
+         @class_builder.validations.push ['total_digits', @total_digits]
+       end
+       
+       unless @fraction_digits.nil?
+         @class_builder.validations.push ['fraction_digits', @fraction_digits]
+       end
+       
+       unless @length.nil?
+         @class_builder.validations.push ['length', @length]
+       end
+       
+       unless @min_length.nil?
+         @class_builder.validations.push ['min_length', @min_length]
+       end
+       
+       unless @max_length.nil?
+         @class_builder.validations.push ['max_length', @max_length]
+       end
+       
+       unless @enumerations.nil?
+         @class_builder.validations.push ['enumerations', @enumerations]
+       end
+       
+       unless @whitespace.nil?
+         @class_builder.validations.push ['whitespace', @whitespace]
+       end
+       
+       unless @pattern.nil?
+         @class_builder.validations.push ['pattern', @pattern]
+       end
      end
 
      return @class_builder
@@ -166,18 +213,19 @@ class Restriction
 
     # internal helper method
     def self.parse_restrictions(restriction, node)
-       restriction.min_exclusive = node.child_value("minExclusive").to_i
-       restriction.min_inclusive = node.child_value("minInclusive").to_i
-       restriction.max_exclusive = node.child_value("maxExclusive").to_i
-       restriction.max_inclusive = node.child_value("maxInclusive").to_i
-       restriction.total_digits  = node.child_value("totalDigits").to_i
-       restriction.fraction_digits  = node.child_value("fractionDigits").to_i
-       restriction.length        = node.child_value("length").to_i
-       restriction.min_length    = node.child_value("minLength").to_i
-       restriction.max_length    = node.child_value("maxLength").to_i
+       restriction.min_exclusive = node.child_value("minExclusive").to_i unless node.child_value("minExclusive").blank?
+       restriction.min_inclusive = node.child_value("minInclusive").to_i unless node.child_value("minInclusive").blank?
+       restriction.max_exclusive = node.child_value("maxExclusive").to_i unless node.child_value("maxExclusive").blank?
+       restriction.max_inclusive = node.child_value("maxInclusive").to_i unless node.child_value("maxInclusive").blank?
+       restriction.total_digits  = node.child_value("totalDigits").to_i unless node.child_value("totalDigits").blank?
+       restriction.fraction_digits  = node.child_value("fractionDigits").to_i unless node.child_value("fractionDigits").blank?
+       restriction.length        = node.child_value("length").to_i unless node.child_value("length").blank?
+       restriction.min_length    = node.child_value("minLength").to_i unless node.child_value("minLength").blank?
+       restriction.max_length    = node.child_value("maxLength").to_i unless node.child_value("maxLength").blank?
        restriction.enumerations  = node.child_values "enumeration"
-       restriction.whitespace    = node.child_value "whitespace"
-       restriction.pattern       = node.child_value "pattern"
+       restriction.enumerations  = nil if restriction.enumerations.empty?
+       restriction.whitespace    = node.child_value "whitespace" unless node.child_value('whitespace').blank?
+       restriction.pattern       = node.child_value "pattern" unless node.child_value('pattern').blank?
     end
 
 end

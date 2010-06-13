@@ -28,6 +28,7 @@ class RubyDefinitionBuilder < ClassBuilder
       end
       res = "class " + @klass_name + " < " + superclass + "\n"
 
+      validators = ''
       # define accessors for attributes
       @attribute_builders.each { |atb|
         unless atb.nil?
@@ -40,9 +41,49 @@ class RubyDefinitionBuilder < ClassBuilder
              att_name = atb.klass.to_s.underscore
           end
 
-          res += "attr_accessor :#{att_name}\n"
+          res += "\tattr_accessor :#{att_name}\n"
+          validators += "\t\terrors.push('#{@klass_name}::#{att_name}') if #{att_name}.respond_to?('valid?') and !#{att_name}.valid?\n"
         end
       }
+      
+      initializers = ''
+      @validations.each {|v|
+        if v[0] == 'min_exclusive'
+          validators += "\t\terrors.push('#{v[0]}') unless self.to_f > #{v[1]}\n"
+        elsif v[0] == 'min_inclusive'
+          validators += "\t\terrors.push('#{v[0]}') unless self.to_f >= #{v[1]}\n"
+        elsif v[0] == 'max_exclusive'
+          validators += "\t\terrors.push('#{v[0]}') unless self.to_f < #{v[1]}\n"
+        elsif v[0] == 'max_inclusive'
+          validators += "\t\terrors.push('#{v[0]}') unless self.to_f <= #{v[1]}\n"
+        elsif v[0] == 'total_digits'
+          puts "TODO: UNSUPPORTED VALIDATION TYPE: #{v[0]}"
+        elsif v[0] == 'fraction_digits'
+          #puts "TODO: UNSUPPORTED VALIDATION TYPE: #{v[0]}"
+          validators += "\t\tn = self.to_s.split('.')\n"
+          validators += "\t\terrors.push('#{v[0]}') unless n.size == 2 and n[1].length == #{v[1]}\n"
+        elsif v[0] == 'length'
+          validators += "\t\terrors.push('#{v[0]}') unless self.to_s.length == #{v[1]}\n"
+        elsif v[0] == 'min_length'
+          validators += "\t\terrors.push('#{v[0]}') unless self.to_s.length >= #{v[1]}\n"
+        elsif v[0] == 'max_length'
+          validators += "\t\terrors.push('#{v[0]}') unless self.to_s.length <= #{v[1]}\n"
+        elsif v[0] == 'enumerations'
+          arr = v[1].collect {|i| "'#{i}'"}.join(', ')
+          validators += "\t\terrors.push('#{v[0]}') unless [#{arr}].include? self.to_s\n"
+        elsif v[0] == 'whitespace'
+          puts "TODO: UNSUPPORTED VALIDATION TYPE: #{v[0]}"
+        elsif v[0] == 'pattern'
+          puts "TODO: UNSUPPORTED VALIDATION TYPE: #{v[0]}"
+        else
+          puts "WARNING: UNSUPPORTED VALIDATION TYPE: #{v[0]}"
+        end
+      }
+      
+      unless validators.blank?
+        res += "\n\tdef valid?\n\t\terrors = []\n#{validators}\t\terrors\n\tend\n"
+      end
+      
       res += "end"
 
       Logger.debug "definition #{res} built, returning"

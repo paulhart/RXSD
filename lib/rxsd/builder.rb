@@ -23,7 +23,10 @@ class ClassBuilder
 
    # array of class builders for all attributes
    attr_accessor :attribute_builders
-
+   
+   # validations to perform
+   attr_accessor :validations
+   
    # name of the attribute which this class represents, for use in accessor construction
    attr_accessor :attribute_name
 
@@ -38,6 +41,7 @@ class ClassBuilder
         @base_builder       = args[:builder].base_builder
         @attribute_builders = args[:builder].attribute_builders
         @attribute_name     = args[:builder].attribute_name
+        @validations        = args[:builder].validations
 
       else
         @klass = args[:klass]
@@ -50,6 +54,7 @@ class ClassBuilder
         end
 
         @attribute_builders = []
+        @validations = []
 
       end
    end
@@ -74,6 +79,7 @@ class ClassBuilder
       @attribute_builders.each { |ab|
          cb.attribute_builders.push ab.clone(cloned) unless ab.nil?
       }
+      cb.validations = @validations
       return cb
    end
 
