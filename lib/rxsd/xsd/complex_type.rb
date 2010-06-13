@@ -106,6 +106,7 @@ class ComplexType
           @choice.to_class_builders.each { |ccb|
             @class_builder.attribute_builders.push ccb
           }
+          @class_builder.validations.push ['choice', @choice.elements.collect{|c| c.name.underscore}]
       end
 
       if !@sequence.nil?

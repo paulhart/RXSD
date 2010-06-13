@@ -59,7 +59,6 @@ class RubyDefinitionBuilder < ClassBuilder
         elsif v[0] == 'total_digits'
           puts "TODO: UNSUPPORTED VALIDATION TYPE: #{v[0]}"
         elsif v[0] == 'fraction_digits'
-          #puts "TODO: UNSUPPORTED VALIDATION TYPE: #{v[0]}"
           validators += "\t\tn = self.to_s.split('.')\n"
           validators += "\t\terrors.push('#{v[0]}') unless n.size == 2 and n[1].length == #{v[1]}\n"
         elsif v[0] == 'length'
@@ -75,6 +74,10 @@ class RubyDefinitionBuilder < ClassBuilder
           puts "TODO: UNSUPPORTED VALIDATION TYPE: #{v[0]}"
         elsif v[0] == 'pattern'
           puts "TODO: UNSUPPORTED VALIDATION TYPE: #{v[0]}"
+        elsif v[0] == 'choice' # Handles situations where a choice option is in the schema.
+          validators += "\t\tused = 0\n"
+          v[1].each{|opt| validators += "\t\tused += 1 unless #{opt}.nil?\n"}
+          validators += "\t\terrors.push('#{v[0]}') unless used == 1\n"
         else
           puts "WARNING: UNSUPPORTED VALIDATION TYPE: #{v[0]}"
         end
